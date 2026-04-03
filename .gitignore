@@ -1,0 +1,5 @@
+.DS_Store
+__pycache__
+oxford-iiit-pet
+*.pth
+vgg11_pet_model_30_epochs.pth
