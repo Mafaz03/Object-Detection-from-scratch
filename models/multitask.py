@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-from classification import VGG11Classifier
-from localization import VGG11Localizer
-from segmentation import VGG11UNet
-from vgg11 import VGG11Encoder
+from models.classification import VGG11Classifier
+from models.localization import VGG11Localizer
+from models.segmentation import VGG11UNet
+from models.vgg11 import VGG11Encoder
 
 import copy
 
@@ -29,7 +29,7 @@ class MultiTaskPerceptionModel(nn.Module):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # classifier
-        model_classifier = VGG11Classifier(num_classes=37, in_channels=3)
+        model_classifier = VGG11Classifier(num_classes = num_breeds, in_channels = in_channels)
         checkpoint = torch.load(classifier_path, map_location=device)
         model_classifier.load_state_dict(checkpoint['state_dict'])
         model_classifier.to(device)
@@ -51,7 +51,7 @@ class MultiTaskPerceptionModel(nn.Module):
             encoder.block4,
             encoder.block5
         ])
-        unet = VGG11UNet(num_classes = 1)
+        unet = VGG11UNet(num_classes = seg_classes)
         checkpoint = torch.load(unet_path, map_location=device)
         unet.load_state_dict(checkpoint['state_dict'])
         unet.to(device)
@@ -69,4 +69,4 @@ class MultiTaskPerceptionModel(nn.Module):
         bbox_pred = self.model_localizer(x) # return 
         mask_pred = self.unet(x)            # return 
 
-        return class_id_pred, bbox_pred, mask_pred
+        return {"classification": pred_logits, "localization": bbox_pred, "segmentation": mask_pred}
