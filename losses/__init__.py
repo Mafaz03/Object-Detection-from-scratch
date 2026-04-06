@@ -1,2 +1,2 @@
 from .iou_loss import IoULoss
-from .iou_loss import DiceLoss
+from .dice_loss import DiceLoss

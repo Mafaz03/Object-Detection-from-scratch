@@ -12,6 +12,16 @@ import matplotlib.patches as patches
 from data.pets_dataset import OxfordIIITPetDataset, get_class_map
 
 from models import MultiTaskPerceptionModel
+from losses import DiceLoss, IoULoss
+
+bce = nn.BCEWithLogitsLoss()
+
+def unet_loss_fn(pred, target):
+    return bce(pred, target) + DiceLoss()(pred, target)
+
+def bbox_loss_fn(pred, target):
+    iou_loss = IoULoss()
+    return iou_loss(pred, target)
 
 parser = argparse.ArgumentParser(description="Inferencing Object detection", conflict_handler="resolve")
 
@@ -61,6 +71,9 @@ class_pred = torch.argmax((torch.softmax(predictions["classification"], dim = 1)
 bbox_pred  = predictions['localization']
 mask_pred  = predictions['segmentation']
 
+print(f"Mask generation / Unet loss:         {unet_loss_fn(mask_pred, sample_mask).item():.3f}")
+print(f"Bbox generation / localization loss: {bbox_loss_fn(predictions['localization'], sample_bbox).item():.3f}")
+
 # processing for plotting
 mean = torch.tensor([0.485, 0.456, 0.406], device=sample_image.device).view(3, 1, 1)
 std  = torch.tensor([0.229, 0.224, 0.225], device=sample_image.device).view(3, 1, 1)
@@ -69,7 +82,6 @@ sample_image = sample_image * std + mean
 fig, ax = plt.subplots(3, BATCH_SIZE, figsize = (8*1.3, 7*1.3))
 for idx in range(BATCH_SIZE):
     ax[0][idx].imshow(sample_image[idx].permute(1,2,0).detach().cpu().numpy()) 
-    # ax[0][idx].set_title(f"Actual: {mappings[sample_classid[idx].item()]}\nPred: {mappings[class_pred[idx].item()]}")
     ax[0][idx].set_title("")  
 
     ax[0][idx].text(0.5, 1.08, f"Actual: {mappings[sample_classid[idx].item()]}",
@@ -122,4 +134,3 @@ for idx in range(BATCH_SIZE):
 
 plt.tight_layout()
 plt.show()
-
