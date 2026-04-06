@@ -26,6 +26,7 @@ def get_class_map(root):
                 class_map[class_id] = breed_name
     return class_map
 
+
 class OxfordIIITPetDataset(Dataset):
     def __init__(self, root_dir, transforms=None):
         self.root = pathlib.Path(root_dir)
@@ -86,10 +87,13 @@ class OxfordIIITPetDataset(Dataset):
         # Load mask
         mask = Image.open(trimap_path)
         mask = np.array(mask)
-        mask = (mask != 2).astype(np.float32)
+        mask_1 = (mask == 1).astype(np.float32)
+        mask_2 = (mask == 2).astype(np.float32)
+        mask_3 = (mask == 3).astype(np.float32)
+        mask = np.stack((mask_1, mask_2, mask_3))
         mask = torch.from_numpy(mask)
-        mask = F.interpolate(mask.unsqueeze(0).unsqueeze(0), [224,224], mode='bilinear', align_corners=False)[0]
-        mask = mask.unsqueeze(1)
+        mask = F.interpolate(mask.unsqueeze(0), [224,224], mode='bilinear', align_corners=False)
+        # mask = mask.unsqueeze(1)
 
         # Parse XML
         tree = ET.parse(xml_path)

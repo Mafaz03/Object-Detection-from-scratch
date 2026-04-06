@@ -25,7 +25,7 @@ class UpBlock(nn.Module):
     
 
 class VGG11UNet(nn.Module):
-    def __init__(self, num_classes=1):
+    def __init__(self, num_classes=3):
         super().__init__()
 
         self.encoder = VGG11Encoder()
