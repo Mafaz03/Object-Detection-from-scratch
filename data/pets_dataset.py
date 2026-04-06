@@ -1,16 +1,13 @@
-import torch
-from torch import nn
-from torch.utils.data import Dataset, DataLoader, dataset
-
-import os
-import numpy as np
-
-import pathlib
 
 from PIL import Image
-import matplotlib.pyplot as plt
-import xml.etree.ElementTree as ET
+import pathlib
+from torch.utils.data import Dataset, random_split, DataLoader, dataset
+import torch
+from torch import nn
+import numpy as np
 import torch.nn.functional as F
+import xml.etree.ElementTree as ET
+
 
 
 def get_class_map(root):
@@ -88,8 +85,11 @@ class OxfordIIITPetDataset(Dataset):
 
         # Load mask
         mask = Image.open(trimap_path)
-        mask = torch.torch.from_numpy(np.array(mask))/255.0
+        mask = np.array(mask)
+        mask = (mask != 2).astype(np.float32)
+        mask = torch.from_numpy(mask)
         mask = F.interpolate(mask.unsqueeze(0).unsqueeze(0), [224,224], mode='bilinear', align_corners=False)[0]
+        mask = mask.unsqueeze(1)
 
         # Parse XML
         tree = ET.parse(xml_path)
