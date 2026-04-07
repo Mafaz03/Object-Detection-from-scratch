@@ -30,17 +30,23 @@ class MultiTaskPerceptionModel(nn.Module):
 
         # classifier
         model_classifier = VGG11Classifier(num_classes = num_breeds, in_channels = in_channels)
-        checkpoint = torch.load(classifier_path, map_location=device)
-        model_classifier.load_state_dict(checkpoint['state_dict'])
-        model_classifier.to(device)
-        print("classifier loaded!")
+        if classifier_path: 
+            checkpoint = torch.load(classifier_path, map_location=device)
+            model_classifier.load_state_dict(checkpoint['state_dict'])
+            model_classifier.to(device)
+            print("classifier loaded!")
+        else:
+            print("classifer not initialised, random weights assigned")
 
         # localizer
         model_localizer = VGG11Localizer(copy.deepcopy(model_classifier.conv_layers))
-        checkpoint = torch.load(localizer_path, map_location=device)
-        model_localizer.load_state_dict(checkpoint['state_dict'])
-        model_localizer.to(device)
-        print("localizer loaded!")
+        if localizer_path: 
+            checkpoint = torch.load(localizer_path, map_location=device)
+            model_localizer.load_state_dict(checkpoint['state_dict'])
+            model_localizer.to(device)
+            print("localizer loaded!")
+        else:
+            print("localizer not initialised, random weights assigned")
 
         # unet
         encoder = VGG11Encoder()
@@ -52,10 +58,13 @@ class MultiTaskPerceptionModel(nn.Module):
             encoder.block5
         ])
         unet = VGG11UNet(num_classes = seg_classes)
-        checkpoint = torch.load(unet_path, map_location=device)
-        unet.load_state_dict(checkpoint['state_dict'])
-        unet.to(device)
-        print("unet loaded!")
+        if localizer_path: 
+            checkpoint = torch.load(unet_path, map_location=device)
+            unet.load_state_dict(checkpoint['state_dict'])
+            unet.to(device)
+            print("unet loaded!")
+        else:
+            print("unet not initialised, random weights assigned")
 
         self.model_classifier = model_classifier
         self.model_localizer  = model_localizer
