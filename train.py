@@ -92,11 +92,10 @@ train_dl = DataLoader(train_ds, batch_size = args.batch_size, shuffle=True)
 test_dl  = DataLoader(test_ds,  batch_size = args.batch_size, shuffle=True)
 
 
-train_loss_tracker = []
-test_loss_tracker  = []
-
 if args.train_classifier:
     print("TRAINING CLASSIFIER")
+    train_loss_tracker = []
+    test_loss_tracker  = []
     for epoch in range(args.epochs):
         # Train
         classifier.train()
@@ -184,9 +183,14 @@ if args.train_classifier:
 
 
 
-
 if args.train_localizer:
     print("LOCALIZER CLASSIFIER")
+
+    train_loss_tracker = []
+    train_loss_tracker = []
+    train_conf_tracker = []
+    test_conf_tracker  = []
+
     if (args.train_classifier and args.classifier_save_path) or (args.classifier_path):
         classifier_pth = args.classifier_save_path if args.reuse_classifer else args.classifier_path
         multitask_model = MultiTaskPerceptionModel(num_breeds   = args.num_breeds, 
@@ -202,6 +206,7 @@ if args.train_localizer:
         # Train
         localizer.train()
         train_loss = 0.0
+        train_conf = 0.0
     
         for batch in tqdm(train_dl, desc=f"Epoch {epoch+1}/{args.epochs} [train]"):
             images = batch['image'].to(device)
@@ -209,7 +214,8 @@ if args.train_localizer:
             bbox = batch['bbox'].to(device)
     
             pred_bbox = localizer(images)
-            iou = localizer_loss_fn(pred_bbox, bbox)
+            iou = localizer_loss_fn(pred_bbox, bbox) # iou loss actually
+            confidence = 1 - iou
             l1  = torch.abs(pred_bbox - bbox).mean()
             loss = iou + 1.0 * l1 # l1
 
@@ -218,16 +224,18 @@ if args.train_localizer:
             localizer_optimizer.step()
     
             train_loss += loss.item()
+            train_conf += confidence.item()
     
         train_loss /= len(train_dl)
+        train_conf /= len(train_dl)
         train_loss_tracker.append(train_loss)
+        train_conf_tracker.append(train_conf)
     
         # Test
         localizer.eval()
         test_loss = 0.0
-        correct = 0
-        total = 0
-    
+        test_conf = 0.0
+
         with torch.no_grad():
             for batch in tqdm(test_dl, desc=f"Epoch {epoch+1}/{args.epochs} [test] "):
                 images = batch['image'].to(device)
@@ -236,17 +244,23 @@ if args.train_localizer:
     
                 pred_bbox = localizer(images)
                 iou = localizer_loss_fn(pred_bbox, bbox)
+                confidence = 1 - iou
                 l1  = torch.abs(pred_bbox - bbox).mean()
                 loss = iou + 1.0 * l1 # l1
 
                 test_loss += loss.item()
+                test_conf += confidence.item()
     
         test_loss /= len(test_dl)
+        test_conf /= len(test_dl)
         test_loss_tracker.append(test_loss)
+        test_conf_tracker.append(test_conf)
 
         wandb.log({
             "localizer/train_loss": train_loss,
-            "localizer/test_loss": test_loss,
+            "localizer/test_loss":  test_loss,
+            "localizer/train_conf": train_conf,
+            "localizer/test_conf":  test_conf,
             "epoch": epoch
         })
 
