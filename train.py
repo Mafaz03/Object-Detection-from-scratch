@@ -41,14 +41,16 @@ parser.add_argument('-d_path',   "--dataset_path",         type   = str,        
 parser.add_argument('-t_ratio',  "--train_ratio",          type   = float,        default = 0.8,                                     help="train ration between 0 and 1")
 parser.add_argument('-bs',       "--batch_size",           type   = int,          default = 3,                                       help="batch size")
 parser.add_argument('-ep',       "--epochs",               type   = int,          default = 10,                                      help="epochs")
-parser.add_argument('-sp',       "--classifier_save_path", type   = str,          default = "checkpoint_2/classifier_save_path.pth", help="where to save the trained classifier model")
-parser.add_argument('-sl',       "--localizer_save_path",  type   = str,          default = "checkpoint_2/localizer_save_path.pth",  help="where to save the trained localizer model")
-parser.add_argument('-su',       "--unet_save_path",       type   = str,          default = "checkpoint_2/unet_save_path.pth",       help="where to save the trained unet model")
+parser.add_argument('-sp',       "--classifier_save_path", type   = str,          default = "checkpoint_2/classifier.pth",           help="where to save the trained classifier model")
+parser.add_argument('-sl',       "--localizer_save_path",  type   = str,          default = "checkpoint_2/localizer.pth",            help="where to save the trained localizer model")
+parser.add_argument('-su',       "--unet_save_path",       type   = str,          default = "checkpoint_2/unet.pth",                 help="where to save the trained unet model")
 parser.add_argument('-t_c',      "--train_classifier",     action = "store_true", default = True,                                    help="want to train classifier?")
 parser.add_argument('-t_l',      "--train_localizer",      action = "store_true", default = True,                                    help="want to train localizer?")
 parser.add_argument('-t_u',      "--train_unet",           action = "store_true", default = True,                                    help="want to train unet?")
 parser.add_argument('-reuse',    "--reuse_classifer",      action = "store_true", default = True,                                    help="Reuse classifier saved from this training loop?")
 parser.add_argument('-save',     "--save_every",           type   = int         , default = 5,                                       help="After how many epochs to save?")
+parser.add_argument('-bn',       "--use_batchnorm",        action = "store_true", default = True,                                    help="Use batch norm in vgg11 classifier or not?")
+parser.add_argument('-do',       "--dropout",              type   = float,        default = 0.5,                                     help="Dropout")
 
 
 args = parser.parse_args()
@@ -60,7 +62,8 @@ multitask_model = MultiTaskPerceptionModel(num_breeds      = args.num_breeds,
                                            in_channels     = args.in_channels, 
                                            classifier_path = args.classifier_path,
                                            localizer_path  = args.localizer_path,
-                                           unet_path       = args.dataset_path)
+                                           unet_path       = args.dataset_path,
+                                           use_batchnorm   = args.use_batchnorm)
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -156,7 +159,7 @@ if args.train_classifier:
                 'opt_state_dict': classifier_optimizer.state_dict(),
                 'epoch': epoch,
                 'loss': loss}
-                    , args.classifier_save_path.replace(".pth", f"epoch-{epoch}.pth"))
+                    , args.classifier_save_path.replace(".pth", f"_epoch-{epoch}.pth"))
 
         print(f"Epoch {epoch+1}/{args.epochs} | Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.2f}%")
 
@@ -273,7 +276,7 @@ if args.train_localizer:
                 'opt_state_dict': localizer_optimizer.state_dict(),
                 'epoch': epoch,
                 'loss': loss}
-                    , args.localizer_save_path.replace(".pth", f"epoch-{epoch}.pth"))
+                    , args.localizer_save_path.replace(".pth", f"_epoch-{epoch}.pth"))
 
     
         print(f"Epoch {epoch+1}/{args.epochs} | Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f} ")
@@ -356,7 +359,7 @@ if args.train_unet:
                 'opt_state_dict': unet_optimizer.state_dict(),
                 'epoch': epoch,
                 'loss': loss}
-                    , args.unet_save_path.replace(".pth", f"epoch-{epoch}.pth"))
+                    , args.unet_save_path.replace(".pth", f"_epoch-{epoch}.pth"))
         
 
         print(f"Epoch {epoch+1}/{args.epochs} | Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f} ")

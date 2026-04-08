@@ -23,20 +23,22 @@ def copy_weights(old_seq, new_blocks):
 
 
 class MultiTaskPerceptionModel(nn.Module):
-    def __init__(self, num_breeds : int = 37, 
-                 seg_classes      : int = 3, 
-                 in_channels      : int = 3, 
-                 classifier_path  : str = "classifier.pth", 
-                 localizer_path   : str = "localizer.pth",
-                 unet_path        : str = "unet.pth",
-                 transfer_learning: str = "freeze all"
+    def __init__(self, num_breeds : int   = 37, 
+                 seg_classes      : int   = 3, 
+                 in_channels      : int   = 3, 
+                 classifier_path  : str   = "classifier.pth", 
+                 localizer_path   : str   = "localizer.pth",
+                 unet_path        : str   = "unet.pth",
+                 transfer_learning: str   = "freeze all",
+                 use_batchnorm    : bool  = True,
+                 dropout          : float = 0.5
                  ):
         super().__init__()
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # classifier
-        model_classifier = VGG11Classifier(num_classes = num_breeds, in_channels = in_channels)
+        model_classifier = VGG11Classifier(num_classes = num_breeds, in_channels = in_channels, use_batchnorm = use_batchnorm, dropoout = dropout)
         if classifier_path: 
             checkpoint = torch.load(classifier_path, map_location=device)
             model_classifier.load_state_dict(checkpoint['state_dict'])
