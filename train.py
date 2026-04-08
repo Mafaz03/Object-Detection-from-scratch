@@ -144,9 +144,9 @@ if args.train_classifier:
         test_acc = correct / total * 100
 
         wandb.log({
-            "classifier/train_loss": train_loss,
-            "classifier/test_loss": test_loss,
-            "classifier/test_acc": test_acc,
+            "classifier_loss/train": train_loss,
+            "classifier_loss/test": test_loss,
+            "classifier_acc/test": test_acc,
             "epoch": epoch
         })
 
@@ -258,12 +258,12 @@ if args.train_localizer:
         test_conf /= len(test_dl)
         test_loss_tracker.append(test_loss)
         test_conf_tracker.append(test_conf)
-
+        
         wandb.log({
-            "localizer/train_loss": train_loss,
-            "localizer/test_loss":  test_loss,
-            "localizer/train_conf": train_conf,
-            "localizer/test_conf":  test_conf,
+            "localizer_loss/train": train_loss,
+            "localizer_loss/test":  test_loss,
+            "localizer_conf/train": train_conf,
+            "localizer_conf/test":  test_conf,
             "epoch": epoch
         })
 
@@ -345,8 +345,8 @@ if args.train_unet:
         test_loss_tracker.append(test_loss)
 
         wandb.log({
-            "unet/train_loss": train_loss,
-            "unet/test_loss": test_loss,
+            "unet_loss/train": train_loss,
+            "unet_loss/test": test_loss,
             "epoch": epoch
         })
 
