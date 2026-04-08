@@ -55,6 +55,18 @@ args = parser.parse_args()
 
 wandb.init(project="Multitask-Pet-Detection", config=vars(args))
 
+# Force train and test lines onto the same plot for each metric
+wandb.define_metric("epoch")
+wandb.define_metric("classifier_loss/train", step_metric="epoch")
+wandb.define_metric("classifier_loss/test",  step_metric="epoch")
+wandb.define_metric("classifier_acc/test",   step_metric="epoch")
+wandb.define_metric("localizer_loss/train",  step_metric="epoch")
+wandb.define_metric("localizer_loss/test",   step_metric="epoch")
+wandb.define_metric("localizer_conf/train",  step_metric="epoch")
+wandb.define_metric("localizer_conf/test",   step_metric="epoch")
+wandb.define_metric("unet_loss/train",       step_metric="epoch")
+wandb.define_metric("unet_loss/test",        step_metric="epoch")
+
 multitask_model = MultiTaskPerceptionModel(num_breeds      = args.num_breeds,
                                            seg_classes     = args.seg_classes,
                                            in_channels     = args.in_channels,
@@ -93,7 +105,7 @@ train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
 test_dl  = DataLoader(test_ds,  batch_size=args.batch_size, shuffle=True)
 
 
-# Classifier 
+# ── Classifier ────────────────────────────────────────────────────────────────
 if args.train_classifier:
     print("TRAINING CLASSIFIER")
 
@@ -144,7 +156,8 @@ if args.train_classifier:
             "classifier_loss/train": train_loss,
             "classifier_loss/test":  test_loss,
             "classifier_acc/test":   test_acc,
-        }, step=epoch)
+            "epoch": epoch,
+        })
 
         if epoch % args.save_every == 0:
             if "/" in args.classifier_save_path:
@@ -169,7 +182,7 @@ if args.train_classifier:
     print("\n" + "="*20 + "\n")
 
 
-# Localizer
+# ── Localizer ─────────────────────────────────────────────────────────────────
 if args.train_localizer:
     print("TRAINING LOCALIZER")
 
@@ -238,7 +251,8 @@ if args.train_localizer:
             "localizer_loss/test":  test_loss,
             "localizer_conf/train": train_conf,
             "localizer_conf/test":  test_conf,
-        }, step=epoch)
+            "epoch": epoch,
+        })
 
         if epoch % args.save_every == 0:
             if "/" in args.localizer_save_path:
@@ -263,7 +277,7 @@ if args.train_localizer:
     print("\n" + "="*20 + "\n")
 
 
-# UNet 
+# ── UNet ──────────────────────────────────────────────────────────────────────
 if args.train_unet:
     print("TRAINING UNET")
 
@@ -306,7 +320,8 @@ if args.train_unet:
         wandb.log({
             "unet_loss/train": train_loss,
             "unet_loss/test":  test_loss,
-        }, step=epoch)
+            "epoch": epoch,
+        })
 
         if epoch % args.save_every == 0:
             if "/" in args.unet_save_path:
