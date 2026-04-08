@@ -13,12 +13,24 @@ def copy_weights(old_seq, new_blocks):
     idx = 0
     for block in new_blocks:
         for layer in block:
-            if isinstance(layer, (nn.Conv2d, nn.BatchNorm2d)):
+            if isinstance(layer, nn.Conv2d):
                 layer.weight.data = old_layers[idx].weight.data.clone()
-                layer.bias.data   = old_layers[idx].bias.data.clone()
+                if layer.bias is not None:
+                    layer.bias.data = old_layers[idx].bias.data.clone()
                 idx += 1
+
+            elif isinstance(layer, nn.BatchNorm2d):
+                # Only copy if old layer is also BatchNorm
+                if isinstance(old_layers[idx], nn.BatchNorm2d):
+                    layer.weight.data = old_layers[idx].weight.data.clone()
+                    layer.bias.data   = old_layers[idx].bias.data.clone()
+                idx += 1
+
             elif isinstance(layer, nn.ReLU):
                 idx += 1  # skip ReLU
+
+            elif isinstance(layer, nn.Identity):
+                continue
         idx += 1  # skip MaxPool
 
 
