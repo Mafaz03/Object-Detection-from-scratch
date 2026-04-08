@@ -44,12 +44,12 @@ parser.add_argument('-ep',       "--epochs",               type   = int,        
 parser.add_argument('-sp',       "--classifier_save_path", type   = str,          default = "checkpoint_2/classifier.pth",           help="where to save the trained classifier model")
 parser.add_argument('-sl',       "--localizer_save_path",  type   = str,          default = "checkpoint_2/localizer.pth",            help="where to save the trained localizer model")
 parser.add_argument('-su',       "--unet_save_path",       type   = str,          default = "checkpoint_2/unet.pth",                 help="where to save the trained unet model")
-parser.add_argument('-t_c',      "--train_classifier",     action = "store_true", default = True,                                    help="want to train classifier?")
-parser.add_argument('-t_l',      "--train_localizer",      action = "store_true", default = True,                                    help="want to train localizer?")
-parser.add_argument('-t_u',      "--train_unet",           action = "store_true", default = True,                                    help="want to train unet?")
-parser.add_argument('-reuse',    "--reuse_classifer",      action = "store_true", default = True,                                    help="Reuse classifier saved from this training loop?")
+parser.add_argument('-t_c',      "--train_classifier",     action = "store_true",                                                    help="want to train classifier?")
+parser.add_argument('-t_l',      "--train_localizer",      action = "store_true",                                                    help="want to train localizer?")
+parser.add_argument('-t_u',      "--train_unet",           action = "store_true",                                                    help="want to train unet?")
+parser.add_argument('-reuse',    "--reuse_classifer",      action = "store_true",                                                    help="Reuse classifier saved from this training loop?")
 parser.add_argument('-save',     "--save_every",           type   = int         , default = 5,                                       help="After how many epochs to save?")
-parser.add_argument('-bn',       "--use_batchnorm",        action = "store_true", default = True,                                    help="Use batch norm in vgg11 classifier or not?")
+parser.add_argument('-bn',       "--use_batchnorm",        action = "store_true",                                                    help="Use batch norm in vgg11 classifier or not?")
 parser.add_argument('-do',       "--dropout",              type   = float,        default = 0.5,                                     help="Dropout")
 
 
