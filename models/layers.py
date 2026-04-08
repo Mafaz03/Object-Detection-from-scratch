@@ -3,6 +3,10 @@ import torch
 
 class CustomDropout(nn.Module):
     def __init__(self, p=0.5):
+        # p is probl of weights getting 0-ed
+        # p = 1, all 0
+        # p = 0, all non 0
+        
         super().__init__()
         self.p = p
  

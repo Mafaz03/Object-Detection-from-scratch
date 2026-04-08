@@ -23,7 +23,14 @@ def copy_weights(old_seq, new_blocks):
 
 
 class MultiTaskPerceptionModel(nn.Module):
-    def __init__(self, num_breeds: int = 37, seg_classes: int = 3, in_channels: int = 3, classifier_path: str = "classifier.pth", localizer_path: str = "localizer.pth", unet_path: str = "unet.pth"):
+    def __init__(self, num_breeds : int = 37, 
+                 seg_classes      : int = 3, 
+                 in_channels      : int = 3, 
+                 classifier_path  : str = "classifier.pth", 
+                 localizer_path   : str = "localizer.pth",
+                 unet_path        : str = "unet.pth",
+                 transfer_learning: str = "freeze all"
+                 ):
         super().__init__()
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -34,6 +41,31 @@ class MultiTaskPerceptionModel(nn.Module):
             checkpoint = torch.load(classifier_path, map_location=device)
             model_classifier.load_state_dict(checkpoint['state_dict'])
             model_classifier.to(device)
+
+            # freeze all
+            if transfer_learning == "freeze all":
+                for param in model_classifier.parameters():
+                    param.requires_grad = False
+            
+            # partial unfreeze
+            elif transfer_learning == "partial unfreeze":
+                conv_layers = [m for m in model_classifier.conv_layers if isinstance(m, nn.Conv2d)]
+                for param in model_classifier.parameters():
+                    param.requires_grad = False
+                k = 2  
+                for layer in conv_layers[-k:]:
+                    for param in layer.parameters():
+                        param.requires_grad = True
+        
+            # unfreeze entire network
+            elif transfer_learning == "unfreeze all":
+                for param in model_classifier.parameters():
+                    param.requires_grad = True
+
+            else: # default is to freeze all
+                for param in model_classifier.parameters():
+                    param.requires_grad = False
+                
             print("classifier loaded!")
         else:
             print("classifer not initialised, random weights assigned")
@@ -57,6 +89,7 @@ class MultiTaskPerceptionModel(nn.Module):
             encoder.block4,
             encoder.block5
         ])
+        
         unet = VGG11UNet(num_classes = seg_classes)
         if localizer_path: 
             checkpoint = torch.load(unet_path, map_location=device)

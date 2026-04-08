@@ -48,6 +48,7 @@ parser.add_argument('-t_c',      "--train_classifier",     action = "store_true"
 parser.add_argument('-t_l',      "--train_localizer",      action = "store_true", default = True,                                    help="want to train localizer?")
 parser.add_argument('-t_u',      "--train_unet",           action = "store_true", default = True,                                    help="want to train unet?")
 parser.add_argument('-reuse',    "--reuse_classifer",      action = "store_true", default = True,                                    help="Reuse classifier saved from this training loop?")
+parser.add_argument('-save',     "--save_every",           type   = int         , default = 5,                                       help="After how many epochs to save?")
 
 
 args = parser.parse_args()
@@ -147,6 +148,17 @@ if args.train_classifier:
             "epoch": epoch
         })
 
+        if epoch % args.save_every == 0:
+            if "/" in args.classifier_save_path:
+                p = "/".join(args.classifier_save_path.split("/")[:-1])
+                os.makedirs(p, exist_ok=True)
+            torch.save({
+                'state_dict': classifier.state_dict(),
+                'opt_state_dict': classifier_optimizer.state_dict(),
+                'epoch': epoch,
+                'loss': loss}
+                    , args.classifier_save_path.replace(".pth", f"epoch-{epoch}.pth"))
+
         print(f"Epoch {epoch+1}/{args.epochs} | Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.2f}%")
 
 
@@ -238,6 +250,17 @@ if args.train_localizer:
             "epoch": epoch
         })
 
+        if epoch % args.save_every == 0:
+            if "/" in args.localizer_save_path:
+                p = "/".join(args.localizer_save_path.split("/")[:-1])
+                os.makedirs(p, exist_ok=True)
+            torch.save({
+                'state_dict': localizer.state_dict(),
+                'opt_state_dict': localizer_optimizer.state_dict(),
+                'epoch': epoch,
+                'loss': loss}
+                    , args.localizer_save_path.replace(".pth", f"epoch-{epoch}.pth"))
+
     
         print(f"Epoch {epoch+1}/{args.epochs} | Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f} ")
 
@@ -309,6 +332,18 @@ if args.train_unet:
             "unet/test_loss": test_loss,
             "epoch": epoch
         })
+
+        if epoch % args.save_every == 0:
+            if "/" in args.unet_save_path:
+                p = "/".join(args.unet_save_path.split("/")[:-1])
+                os.makedirs(p, exist_ok=True)
+            torch.save({
+                'state_dict': unet.state_dict(),
+                'opt_state_dict': unet_optimizer.state_dict(),
+                'epoch': epoch,
+                'loss': loss}
+                    , args.unet_save_path.replace(".pth", f"epoch-{epoch}.pth"))
+        
 
         print(f"Epoch {epoch+1}/{args.epochs} | Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f} ")
 
