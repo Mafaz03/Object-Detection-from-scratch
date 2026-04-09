@@ -40,9 +40,9 @@ parser.add_argument('-d_path',   "--dataset_path",         type=str,           d
 parser.add_argument('-t_ratio',  "--train_ratio",          type=float,         default=0.8,                           help="train ratio between 0 and 1")
 parser.add_argument('-bs',       "--batch_size",           type=int,           default=3,                             help="batch size")
 parser.add_argument('-ep',       "--epochs",               type=int,           default=10,                            help="epochs")
-parser.add_argument('-sp',       "--classifier_save_path", type=str,           default="checkpoint_2/classifier.pth", help="where to save the trained classifier model")
-parser.add_argument('-sl',       "--localizer_save_path",  type=str,           default="checkpoint_2/localizer.pth",  help="where to save the trained localizer model")
-parser.add_argument('-su',       "--unet_save_path",       type=str,           default="checkpoint_2/unet.pth",       help="where to save the trained unet model")
+parser.add_argument('-sp',       "--classifier_save_path", type=str,           default="checkpoints_/classifier.pth", help="where to save the trained classifier model")
+parser.add_argument('-sl',       "--localizer_save_path",  type=str,           default="checkpoints_/localizer.pth",  help="where to save the trained localizer model")
+parser.add_argument('-su',       "--unet_save_path",       type=str,           default="checkpoints_/unet.pth",       help="where to save the trained unet model")
 parser.add_argument('-t_c',      "--train_classifier",     action="store_true",                                       help="want to train classifier?")
 parser.add_argument('-t_l',      "--train_localizer",      action="store_true",                                       help="want to train localizer?")
 parser.add_argument('-t_u',      "--train_unet",           action="store_true",                                       help="want to train unet?")
@@ -50,6 +50,7 @@ parser.add_argument('-reuse',    "--reuse_classifer",      action="store_true", 
 parser.add_argument('-save',     "--save_every",           type=int,           default=5,                             help="After how many epochs to save?")
 parser.add_argument('-bn',       "--use_batchnorm",        action="store_true",                                       help="Use batch norm in vgg11 classifier or not?")
 parser.add_argument('-do',       "--dropout",              type=float,         default=0.5,                           help="Dropout")
+parser.add_argument('-tl',       "--transfer_learning",    type=str,           default="freeze all",                  help="transfer_learning")
 
 args = parser.parse_args()
 
@@ -67,13 +68,14 @@ wandb.define_metric("localizer_conf/test",   step_metric="epoch")
 wandb.define_metric("unet_loss/train",       step_metric="epoch")
 wandb.define_metric("unet_loss/test",        step_metric="epoch")
 
-multitask_model = MultiTaskPerceptionModel(num_breeds      = args.num_breeds,
-                                           seg_classes     = args.seg_classes,
-                                           in_channels     = args.in_channels,
-                                           classifier_path = args.classifier_path,
-                                           localizer_path  = args.localizer_path,
-                                           unet_path       = args.dataset_path,
-                                           use_batchnorm   = args.use_batchnorm)
+multitask_model = MultiTaskPerceptionModel(num_breeds        = args.num_breeds,
+                                           seg_classes       = args.seg_classes,
+                                           in_channels       = args.in_channels,
+                                           classifier_path   = args.classifier_path,
+                                           localizer_path    = args.localizer_path,
+                                           unet_path         = args.dataset_path,
+                                           use_batchnorm     = args.use_batchnorm,
+                                           transfer_learning = args.transfer_learning)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 

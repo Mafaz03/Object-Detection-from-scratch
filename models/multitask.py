@@ -4,7 +4,8 @@ from models.classification import VGG11Classifier
 from models.localization import VGG11Localizer
 from models.segmentation import VGG11UNet
 from models.vgg11 import VGG11Encoder
-
+import os
+import gdown
 import copy
 
 def copy_weights(old_seq, new_blocks):
@@ -38,14 +39,19 @@ class MultiTaskPerceptionModel(nn.Module):
     def __init__(self, num_breeds : int   = 37, 
                  seg_classes      : int   = 3, 
                  in_channels      : int   = 3, 
-                 classifier_path  : str   = "classifier.pth", 
-                 localizer_path   : str   = "localizer.pth",
-                 unet_path        : str   = "unet.pth",
+                 classifier_path  : str   = "checkpoints/classifier.pth", 
+                 localizer_path   : str   = "checkpoints/localizer.pth",
+                 unet_path        : str   = "checkpoints/unet.pth",
                  transfer_learning: str   = "freeze all",
                  use_batchnorm    : bool  = True,
                  dropout          : float = 0.5
                  ):
         super().__init__()
+
+        os.makedirs("checkpoints", exist_ok=True)
+        gdown.download(id="1YLSo7d0WYmFEUckj_9HIZKOoEut4fL2p", output=classifier_path, quiet=False)
+        gdown.download(id="1u_XGZq4lODKq56OXp9ofXbwcW1Qx3vc0", output=localizer_path, quiet=False)
+        gdown.download(id="1G1_SrLDHtLFmf8pyivMD4V41Q1sV8q_G", output=unet_path, quiet=False)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
