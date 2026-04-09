@@ -67,13 +67,17 @@ wandb.define_metric("localizer_conf/train",  step_metric="epoch")
 wandb.define_metric("localizer_conf/test",   step_metric="epoch")
 wandb.define_metric("unet_loss/train",       step_metric="epoch")
 wandb.define_metric("unet_loss/test",        step_metric="epoch")
+wandb.define_metric("unet_dice/train",       step_metric="epoch")
+wandb.define_metric("unet_dice/test",        step_metric="epoch")
+wandb.define_metric("unet_acc/train",        step_metric="epoch")
+wandb.define_metric("unet_acc/test",         step_metric="epoch")
 
 multitask_model = MultiTaskPerceptionModel(num_breeds        = args.num_breeds,
                                            seg_classes       = args.seg_classes,
                                            in_channels       = args.in_channels,
                                            classifier_path   = args.classifier_path,
                                            localizer_path    = args.localizer_path,
-                                           unet_path         = args.dataset_path,
+                                           unet_path         = args.unet_path,
                                            use_batchnorm     = args.use_batchnorm,
                                            transfer_learning = args.transfer_learning)
 
@@ -283,10 +287,25 @@ if args.train_localizer:
 if args.train_unet:
     print("TRAINING UNET")
 
+    def dice_score(pred, target, threshold=0.5):
+        pred   = (torch.sigmoid(pred) > threshold).float()
+        inter  = (pred * target).sum(dim=(1, 2, 3))
+        union  = pred.sum(dim=(1, 2, 3)) + target.sum(dim=(1, 2, 3))
+        dice   = (2 * inter / (union + 1e-6)).mean()
+        return dice.item()
+
+    def pixel_accuracy(pred, target, threshold=0.5):
+        pred    = (torch.sigmoid(pred) > threshold).float()
+        correct = (pred == target).float().sum()
+        total   = torch.numel(pred)
+        return (correct / total).item()
+
     for epoch in range(args.epochs):
         # Train
         unet.train()
         train_loss = 0.0
+        train_dice = 0.0
+        train_acc  = 0.0
 
         for batch in tqdm(train_dl, desc=f"Epoch {epoch+1}/{args.epochs} [train]"):
             images = batch['image'].to(device)
@@ -300,12 +319,18 @@ if args.train_unet:
             unet_optimizer.step()
 
             train_loss += loss.item()
+            train_dice += dice_score(pred_mask, masks)
+            train_acc  += pixel_accuracy(pred_mask, masks)
 
         train_loss /= len(train_dl)
+        train_dice /= len(train_dl)
+        train_acc  /= len(train_dl)
 
         # Test
         unet.eval()
         test_loss = 0.0
+        test_dice = 0.0
+        test_acc  = 0.0
 
         with torch.no_grad():
             for batch in tqdm(test_dl, desc=f"Epoch {epoch+1}/{args.epochs} [test] "):
@@ -314,14 +339,22 @@ if args.train_unet:
 
                 pred_mask = unet(images)
                 loss      = loss_fn(pred_mask, masks)
+
                 test_loss += loss.item()
+                test_dice += dice_score(pred_mask, masks)
+                test_acc  += pixel_accuracy(pred_mask, masks)
 
         test_loss /= len(test_dl)
+        test_dice /= len(test_dl)
+        test_acc  /= len(test_dl)
 
-        # FIX: single log call so train and test share the same x-axis step
         wandb.log({
             "unet_loss/train": train_loss,
             "unet_loss/test":  test_loss,
+            "unet_dice/train": train_dice,
+            "unet_dice/test":  test_dice,
+            "unet_acc/train":  train_acc,
+            "unet_acc/test":   test_acc,
             "epoch": epoch,
         })
 
@@ -334,7 +367,19 @@ if args.train_unet:
                 'epoch': epoch, 'loss': loss},
                 args.unet_save_path.replace(".pth", f"_epoch-{epoch}.pth"))
 
-        print(f"Epoch {epoch+1}/{args.epochs} | Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f}")
+        print(f"Epoch {epoch+1}/{args.epochs} | "
+              f"Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f} | "
+              f"Train Dice: {train_dice:.4f} | Test Dice: {test_dice:.4f} | "
+              f"Train Acc: {train_acc:.4f} | Test Acc: {test_acc:.4f}")
+        
+    trainable     = sum(p.numel() for p in unet.parameters() if p.requires_grad)
+    non_trainable = sum(p.numel() for p in unet.parameters() if not p.requires_grad)
+    wandb.config.update({
+        "trainable_params":     trainable,
+        "non_trainable_params": non_trainable,
+        "transfer_learning":    args.transfer_learning
+    })
+    print(f"Trainable: {trainable:,} | Frozen: {non_trainable:,}")
 
     if "/" in args.unet_save_path:
         os.makedirs("/".join(args.unet_save_path.split("/")[:-1]), exist_ok=True)

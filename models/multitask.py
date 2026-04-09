@@ -49,9 +49,9 @@ class MultiTaskPerceptionModel(nn.Module):
         super().__init__()
 
         os.makedirs("checkpoints", exist_ok=True)
-        gdown.download(id="1YLSo7d0WYmFEUckj_9HIZKOoEut4fL2p", output=classifier_path, quiet=False)
-        gdown.download(id="1u_XGZq4lODKq56OXp9ofXbwcW1Qx3vc0", output=localizer_path, quiet=False)
-        gdown.download(id="1G1_SrLDHtLFmf8pyivMD4V41Q1sV8q_G", output=unet_path, quiet=False)
+        gdown.download(id="1gMd4dAtubHVmPUBYVmMm11U1y76GvJWO", output=classifier_path, quiet=False)
+        gdown.download(id="10UGWUOCADt1c1pKAnTonsnB9VPehIhB0", output=localizer_path, quiet=False)
+        gdown.download(id="1WOTClHYU8N2lHaTWeYoKtyYwOrWRXts3", output=unet_path, quiet=False)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -62,12 +62,10 @@ class MultiTaskPerceptionModel(nn.Module):
             model_classifier.load_state_dict(checkpoint['state_dict'])
             model_classifier.to(device)
 
-            # freeze all
             if transfer_learning == "freeze all":
                 for param in model_classifier.parameters():
                     param.requires_grad = False
-            
-            # partial unfreeze
+
             elif transfer_learning == "partial unfreeze":
                 conv_layers = [m for m in model_classifier.conv_layers if isinstance(m, nn.Conv2d)]
                 for param in model_classifier.parameters():
@@ -76,15 +74,10 @@ class MultiTaskPerceptionModel(nn.Module):
                 for layer in conv_layers[-k:]:
                     for param in layer.parameters():
                         param.requires_grad = True
-        
-            # unfreeze entire network
-            elif transfer_learning == "unfreeze all":
-                for param in model_classifier.parameters():
-                    param.requires_grad = True
 
-            else: # default is to freeze all
-                for param in model_classifier.parameters():
-                    param.requires_grad = False
+            elif transfer_learning == "unfreeze all":
+                for param in unet.parameters():
+                    param.requires_grad = True
                 
             print("classifier loaded!")
         else:
@@ -118,6 +111,23 @@ class MultiTaskPerceptionModel(nn.Module):
             print("unet loaded!")
         else:
             print("unet not initialised, random weights assigned")
+
+        if transfer_learning == "freeze all":
+            for name, param in unet.named_parameters():
+                if "encoder" in name:
+                    param.requires_grad = False
+
+        elif transfer_learning == "partial unfreeze":
+            for name, param in unet.named_parameters():
+                if "encoder" in name:
+                    param.requires_grad = False
+            for name, param in unet.named_parameters():
+                if "encoder.block4" in name or "encoder.block5" in name:
+                    param.requires_grad = True
+
+        elif transfer_learning == "unfreeze all":
+            for param in unet.parameters():
+                param.requires_grad = True
 
         self.model_classifier = model_classifier
         self.model_localizer  = model_localizer
