@@ -51,7 +51,11 @@ parser.add_argument('-save',     "--save_every",           type=int,           d
 parser.add_argument('-bn',       "--use_batchnorm",        action="store_true",                                       help="Use batch norm in vgg11 classifier or not?")
 parser.add_argument('-do',       "--dropout",              type=float,         default=0.5,                           help="Dropout")
 parser.add_argument('-tl',       "--transfer_learning",    type=str,           default="freeze all",                  help="`freeze all` or `partial unfreeze` or `unfreeze all`")
-parser.add_argument('-lr',       "--learning rate",        type=float,         default=1e-4,                          help="learning rate for all")
+parser.add_argument('-lr',       "--learning_rate",        type=float,         default=1e-4,                          help="learning rate for all")
+parser.add_argument('-lc',       "--load_classifier",      type="store_true",                                         help="load classifier?")
+parser.add_argument('-ll',       "--load_localizer",       type="store_true",                                         help="load localizer?")
+parser.add_argument('-lu',       "--load_unet",            type="store_true",                                         help="load unet?")
+parser.add_argument('-lu',       "--learning_rate",        type=float,         default=1e-4,                          help="learning rate for all")
 
 args = parser.parse_args()
 
@@ -80,7 +84,11 @@ multitask_model = MultiTaskPerceptionModel(num_breeds        = args.num_breeds,
                                            localizer_path    = args.localizer_path,
                                            unet_path         = args.unet_path,
                                            use_batchnorm     = args.use_batchnorm,
-                                           transfer_learning = args.transfer_learning)
+                                           transfer_learning = args.transfer_learning,
+                                           train_classifier  = args.load_classifier,
+                                           train_localizer   = args.load_localizer,
+                                           train_unet        = args.load_unet
+                                           )
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 

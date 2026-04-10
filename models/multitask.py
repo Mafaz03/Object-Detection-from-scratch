@@ -44,7 +44,10 @@ class MultiTaskPerceptionModel(nn.Module):
                  unet_path        : str   = "checkpoints/unet.pth",
                  transfer_learning: str   = "freeze all",
                  use_batchnorm    : bool  = True,
-                 dropout          : float = 0.5
+                 dropout          : float = 0.5,
+                 train_classifier : float = False,
+                 train_localizer  : float = False,
+                 train_unet       : float = False,
                  ):
         super().__init__()
 
@@ -57,7 +60,7 @@ class MultiTaskPerceptionModel(nn.Module):
 
         # classifier
         model_classifier = VGG11Classifier(num_classes = num_breeds, in_channels = in_channels, use_batchnorm = use_batchnorm, dropoout = dropout)
-        if classifier_path: 
+        if classifier_path and (train_classifier == False): 
             checkpoint = torch.load(classifier_path, map_location=device)
             model_classifier.load_state_dict(checkpoint['state_dict'])
             model_classifier.to(device)
@@ -81,7 +84,7 @@ class MultiTaskPerceptionModel(nn.Module):
 
         # localizer
         model_localizer = VGG11Localizer(copy.deepcopy(model_classifier.conv_layers))
-        if localizer_path: 
+        if localizer_path and (train_localizer == False): 
             checkpoint = torch.load(localizer_path, map_location=device)
             model_localizer.load_state_dict(checkpoint['state_dict'])
             model_localizer.to(device)
@@ -100,7 +103,7 @@ class MultiTaskPerceptionModel(nn.Module):
         ])
         
         unet = VGG11UNet(num_classes = seg_classes)
-        if localizer_path: 
+        if unet_path and (train_unet == False): 
             checkpoint = torch.load(unet_path, map_location=device)
             unet.load_state_dict(checkpoint['state_dict'])
             unet.to(device)
