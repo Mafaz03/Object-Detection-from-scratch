@@ -23,8 +23,8 @@ train_dl = DataLoader(train_ds, batch_size = 1, shuffle=True)
 test_dl  = DataLoader(test_ds,  batch_size = 1, shuffle=True)
 
 
-model_classifier = VGG11Classifier(in_channels = 3, num_classes = 37, use_batchnorm = False)
-checkpoint = torch.load("/Users/mohamedmafaz/Downloads/2_1_no-batchnorm.pth", map_location=torch.device('cpu'))
+model_classifier = VGG11Classifier(in_channels = 3, num_classes = 37, use_batchnorm = True)
+checkpoint = torch.load("/Users/mohamedmafaz/Downloads/2_1_batchnorm.pth", map_location=torch.device('cpu'))
 model_classifier.load_state_dict(checkpoint['state_dict'])
 model_classifier.eval()
 
@@ -69,7 +69,7 @@ wandb.log({
         table,
         "activation_value",
         "count",
-        title="3rd Conv Activation Distribution - NO BATCHNORM "
+        title="3rd Conv Activation Distribution - BATCHNORM "
     )
 })
 

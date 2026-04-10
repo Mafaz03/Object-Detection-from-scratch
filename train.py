@@ -51,6 +51,7 @@ parser.add_argument('-save',     "--save_every",           type=int,           d
 parser.add_argument('-bn',       "--use_batchnorm",        action="store_true",                                       help="Use batch norm in vgg11 classifier or not?")
 parser.add_argument('-do',       "--dropout",              type=float,         default=0.5,                           help="Dropout")
 parser.add_argument('-tl',       "--transfer_learning",    type=str,           default="freeze all",                  help="`freeze all` or `partial unfreeze` or `unfreeze all`")
+parser.add_argument('-lr',       "--learning rate",        type=float,         default=1e-4,                          help="learning rate for all")
 
 args = parser.parse_args()
 
@@ -87,13 +88,13 @@ classifier = multitask_model.model_classifier.to(device)
 localizer  = multitask_model.model_localizer.to(device)
 unet       = multitask_model.unet.to(device)
 
-classifier_optimizer = torch.optim.Adam(classifier.parameters(), lr=1e-4, weight_decay=1e-4)
+classifier_optimizer = torch.optim.Adam(classifier.parameters(), lr=args.learning_rate, weight_decay=1e-4)
 classifier_loss_fn   = nn.CrossEntropyLoss()
 
-localizer_optimizer = torch.optim.Adam(localizer.parameters(), lr=1e-4, weight_decay=1e-4)
+localizer_optimizer = torch.optim.Adam(localizer.parameters(), lr=args.learning_rate, weight_decay=1e-4)
 localizer_loss_fn   = IoULoss()
 
-unet_optimizer = torch.optim.Adam(unet.parameters(), lr=1e-4, weight_decay=1e-4)
+unet_optimizer = torch.optim.Adam(unet.parameters(), lr=args.learning_rate, weight_decay=1e-4)
 bce = nn.BCEWithLogitsLoss()
 
 def loss_fn(pred, target):
