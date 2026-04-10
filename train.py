@@ -50,7 +50,7 @@ parser.add_argument('-reuse',    "--reuse_classifer",      action="store_true", 
 parser.add_argument('-save',     "--save_every",           type=int,           default=5,                             help="After how many epochs to save?")
 parser.add_argument('-bn',       "--use_batchnorm",        action="store_true",                                       help="Use batch norm in vgg11 classifier or not?")
 parser.add_argument('-do',       "--dropout",              type=float,         default=0.5,                           help="Dropout")
-parser.add_argument('-tl',       "--transfer_learning",    type=str,           default="freeze all",                  help="transfer_learning")
+parser.add_argument('-tl',       "--transfer_learning",    type=str,           default="freeze all",                  help="`freeze all` or `partial unfreeze` or `unfreeze all`")
 
 args = parser.parse_args()
 
@@ -251,7 +251,6 @@ if args.train_localizer:
         test_loss /= len(test_dl)
         test_conf /= len(test_dl)
 
-        # FIX: single log call so train and test share the same x-axis step
         wandb.log({
             "localizer_loss/train": train_loss,
             "localizer_loss/test":  test_loss,

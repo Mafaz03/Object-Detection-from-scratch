@@ -74,10 +74,6 @@ class MultiTaskPerceptionModel(nn.Module):
                 for layer in conv_layers[-k:]:
                     for param in layer.parameters():
                         param.requires_grad = True
-
-            elif transfer_learning == "unfreeze all":
-                for param in unet.parameters():
-                    param.requires_grad = True
                 
             print("classifier loaded!")
         else:
