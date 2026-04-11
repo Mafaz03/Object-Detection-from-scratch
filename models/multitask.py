@@ -48,7 +48,7 @@ class MultiTaskPerceptionModel(nn.Module):
                  train_classifier : float = False,
                  train_localizer  : float = False,
                  train_unet       : float = False,
-                 download         : bool  = False 
+                 download         : bool  = True 
                  ):
         super().__init__()
         if download:

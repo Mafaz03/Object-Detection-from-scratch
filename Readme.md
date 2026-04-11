@@ -31,7 +31,7 @@ This repository implements a multi-task pet perception pipeline using the Oxford
 Install the required Python packages with:
 
 ```bash
-pip install torch torchvision matplotlib numpy tqdm pandas pillow wandb
+pip install torch matplotlib numpy tqdm pandas pillow wandb
 ```
 
 > If you use a CUDA-enabled GPU, install the matching PyTorch build from https://pytorch.org.

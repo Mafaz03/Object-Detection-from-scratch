@@ -84,9 +84,9 @@ def compute_dice(pred_logits, gt_masks, threshold=0.5):
 
 parser = argparse.ArgumentParser(description="multi task pet inference", conflict_handler="resolve")
 
-parser.add_argument('-n_breeds', "--num_breeds",       type=int, default=37,                      help="Total number of breeds to classify")
-parser.add_argument('-s_class',  "--seg_classes",      type=int, default=3,                       help="Total number of classes to segment")
-parser.add_argument('-in_c',     "--in_channels",      type=int, default=3,                       help="In channels of images")
+parser.add_argument('-n_breeds', "--num_breeds",       type=int, default=37,                           help="Total number of breeds to classify")
+parser.add_argument('-s_class',  "--seg_classes",      type=int, default=3,                            help="Total number of classes to segment")
+parser.add_argument('-in_c',     "--in_channels",      type=int, default=3,                            help="In channels of images")
 parser.add_argument('-c_path',   "--classifier_path",  type=str, default="checkpoints/classifier.pth", help="Path for classifier model (.pth)")
 parser.add_argument('-l_path',   "--localizer_path",   type=str, default="checkpoints/localizer.pth",  help="Path for localizer model (.pth)")
 parser.add_argument('-u_path',   "--unet_path",        type=str, default="checkpoints/unet.pth",       help="Path for unet model (.pth)")
@@ -101,7 +101,11 @@ multitask_model = MultiTaskPerceptionModel(num_breeds      = args.num_breeds,
                                            in_channels     = args.in_channels,
                                            classifier_path = args.classifier_path,
                                            localizer_path  = args.localizer_path,
-                                           unet_path       = args.unet_path)
+                                           unet_path       = args.unet_path,
+                                           train_classifier= True,
+                                           train_localizer = True,
+                                           train_unet      = True,
+                                           download        = False)
 multitask_model.eval()
 print("read to go")
 
