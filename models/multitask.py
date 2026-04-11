@@ -48,19 +48,20 @@ class MultiTaskPerceptionModel(nn.Module):
                  train_classifier : float = False,
                  train_localizer  : float = False,
                  train_unet       : float = False,
+                 download         : bool  = False 
                  ):
         super().__init__()
-
-        os.makedirs("checkpoints", exist_ok=True)
-        gdown.download(id="1gMd4dAtubHVmPUBYVmMm11U1y76GvJWO", output=classifier_path, quiet=False)
-        gdown.download(id="10UGWUOCADt1c1pKAnTonsnB9VPehIhB0", output=localizer_path, quiet=False)
-        gdown.download(id="1WOTClHYU8N2lHaTWeYoKtyYwOrWRXts3", output=unet_path, quiet=False)
+        if download:
+            os.makedirs("checkpoints", exist_ok=True)
+            gdown.download(id="1gMd4dAtubHVmPUBYVmMm11U1y76GvJWO", output=classifier_path, quiet=False)
+            gdown.download(id="10UGWUOCADt1c1pKAnTonsnB9VPehIhB0", output=localizer_path, quiet=False)
+            gdown.download(id="1WOTClHYU8N2lHaTWeYoKtyYwOrWRXts3", output=unet_path, quiet=False)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # classifier
         model_classifier = VGG11Classifier(num_classes = num_breeds, in_channels = in_channels, use_batchnorm = use_batchnorm, dropoout = dropout)
-        if classifier_path and (train_classifier == False): 
+        if classifier_path and (train_classifier == True): 
             checkpoint = torch.load(classifier_path, map_location=device)
             model_classifier.load_state_dict(checkpoint['state_dict'])
             model_classifier.to(device)
@@ -84,7 +85,7 @@ class MultiTaskPerceptionModel(nn.Module):
 
         # localizer
         model_localizer = VGG11Localizer(copy.deepcopy(model_classifier.conv_layers))
-        if localizer_path and (train_localizer == False): 
+        if localizer_path and (train_localizer == True): 
             checkpoint = torch.load(localizer_path, map_location=device)
             model_localizer.load_state_dict(checkpoint['state_dict'])
             model_localizer.to(device)
@@ -103,7 +104,7 @@ class MultiTaskPerceptionModel(nn.Module):
         ])
         
         unet = VGG11UNet(num_classes = seg_classes)
-        if unet_path and (train_unet == False): 
+        if unet_path and (train_unet == True): 
             checkpoint = torch.load(unet_path, map_location=device)
             unet.load_state_dict(checkpoint['state_dict'])
             unet.to(device)
@@ -132,12 +133,15 @@ class MultiTaskPerceptionModel(nn.Module):
         self.model_localizer  = model_localizer
         self.unet             = unet
     
-    def forward(self, x: torch.tensor):
+    def forward(self, x: torch.tensor, conf: bool = False):
         pred_logits = self.model_classifier(x)
         preds = torch.softmax(pred_logits, dim = 1)
+        conf_cls, class_id = torch.max(preds, dim=1)
         class_id_pred = torch.argmax(preds) # return 
 
         bbox_pred = self.model_localizer(x) # return 
         mask_pred = self.unet(x)            # return 
-
-        return {"classification": pred_logits, "localization": bbox_pred, "segmentation": mask_pred}
+        if not conf:
+            return {"classification": pred_logits, "localization": bbox_pred, "segmentation": mask_pred}
+        else:
+            return {"classification": pred_logits, "localization": bbox_pred, "segmentation": mask_pred, "confidence": conf_cls}

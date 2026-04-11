@@ -5,3 +5,4 @@ oxford-iiit-pet
 vgg11_pet_model_30_epochs.pth
 .env
 wandb
+personal

@@ -52,9 +52,9 @@ parser.add_argument('-bn',       "--use_batchnorm",        action="store_true", 
 parser.add_argument('-do',       "--dropout",              type=float,         default=0.5,                           help="Dropout")
 parser.add_argument('-tl',       "--transfer_learning",    type=str,           default="freeze all",                  help="`freeze all` or `partial unfreeze` or `unfreeze all`")
 parser.add_argument('-lr',       "--learning_rate",        type=float,         default=1e-4,                          help="learning rate for all")
-parser.add_argument('-lc',       "--load_classifier",      type="store_true",                                         help="load classifier?")
-parser.add_argument('-ll',       "--load_localizer",       type="store_true",                                         help="load localizer?")
-parser.add_argument('-lu',       "--load_unet",            type="store_true",                                         help="load unet?")
+parser.add_argument('-lc',       "--load_classifier",      action="store_true",                                       help="load classifier?")
+parser.add_argument('-ll',       "--load_localizer",       action="store_true",                                       help="load localizer?")
+parser.add_argument('-lu',       "--load_unet",            action="store_true",                                       help="load unet?")
 parser.add_argument('-lu',       "--learning_rate",        type=float,         default=1e-4,                          help="learning rate for all")
 
 args = parser.parse_args()
