@@ -2,8 +2,9 @@ import torch
 from torch import nn
 
 class IoULoss(nn.Module):
-    def __init__(self):
+    def __init__(self, reduction='mean'):
         super().__init__()
+        self.reduction = reduction
 
     def forward(self, pred, target):
         # pred, target: [B, 4] -> (xc, yc, w, h)
@@ -35,4 +36,11 @@ class IoULoss(nn.Module):
 
         iou = inter / union
 
-        return 1 - iou.mean()
+        loss = 1 - iou
+
+        if self.reduction == 'mean':
+            return loss.mean()
+        elif self.reduction == 'sum':
+            return loss.sum()
+        else:
+            return loss
