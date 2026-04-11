@@ -45,9 +45,9 @@ class MultiTaskPerceptionModel(nn.Module):
                  transfer_learning: str   = "freeze all",
                  use_batchnorm    : bool  = True,
                  dropout          : float = 0.5,
-                 train_classifier : float = False,
-                 train_localizer  : float = False,
-                 train_unet       : float = False,
+                 train_classifier : float = True,
+                 train_localizer  : float = True,
+                 train_unet       : float = True,
                  download         : bool  = True 
                  ):
         super().__init__()
