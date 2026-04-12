@@ -22,9 +22,16 @@ class VGG11Localizer(nn.Module):
             return bbox
         else:
             feat = self.backbone(x)
-            bbox = self.regressor(feat) 
+            out  = self.regressor(feat) 
     
         
-            bbox = bbox * 224
+            out = out * 224
     
-            return bbox 
+        
+            x1, y1, x2, y2 = out[:, 0], out[:, 1], out[:, 2], out[:, 3]
+            cx = (x1 + x2) / 2
+            cy = (y1 + y2) / 2
+            w  = (x2 - x1).abs()
+            h  = (y2 - y1).abs()
+    
+            return torch.stack([cx, cy, w, h], dim=1)
