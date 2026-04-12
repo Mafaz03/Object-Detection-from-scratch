@@ -125,7 +125,7 @@ sample = next(iter(train_dl))
 
 sample_image   = sample['image']
 sample_classid = sample['class_id']
-sample_bbox    = sample['bbox']
+sample_bbox    = sample['bbox_224']
 sample_mask    = sample['mask']
 
 predictions = multitask_model(sample_image)
@@ -200,16 +200,15 @@ for idx in range(BATCH_SIZE):
 
     # Predicted bbox (RED)
     xc, yc, w, h = bbox_pred[idx].squeeze().detach().cpu().numpy()
-    _, _, H, W = sample_image.shape
     rect_pred = patches.Rectangle(
-        ((xc - w/2)*W, (yc - h/2)*H), w*W, h*H,
+        (xc - w/2, yc - h/2), w, h,
         linewidth=2, edgecolor='r', facecolor='none')
     ax[0][idx].add_patch(rect_pred)
 
     # Actual bbox (YELLOW)
     xc, yc, w_gt, h_gt = sample_bbox[idx].cpu().numpy()
     rect_gt = patches.Rectangle(
-        ((xc - w_gt/2)*W, (yc - h_gt/2)*H), w_gt*W, h_gt*H,
+        (xc - w_gt/2, yc - h_gt/2), w_gt, h_gt,
         linewidth=2, edgecolor='Yellow', facecolor='none')
     ax[0][idx].add_patch(rect_gt)
 
@@ -241,21 +240,18 @@ for idx in range(BATCH_SIZE):
     xc_gt, yc_gt, w_gt, h_gt = sample_bbox[idx].cpu().numpy()
     x1_gt, y1_gt, x2_gt, y2_gt = xc_gt-w_gt/2, yc_gt-h_gt/2, xc_gt+w_gt/2, yc_gt+h_gt/2
 
-    clip = lambda v: float(max(0, min(1, v)))
-    x1, y1, x2, y2 = clip(x1), clip(y1), clip(x2), clip(y2)
-    x1_gt, y1_gt, x2_gt, y2_gt = clip(x1_gt), clip(y1_gt), clip(x2_gt), clip(y2_gt)
-
     normal_img = Image.fromarray(img).resize((512, 512))
     bbox_np    = np.array(normal_img).copy()
     H, W, _    = bbox_np.shape
+    scale = W / 224.0
 
     # Pred box (RED)
-    x1p, y1p, x2p, y2p = int(x1*W), int(y1*H), int(x2*W), int(y2*H)
+    x1p, y1p, x2p, y2p = int(x1*scale), int(y1*scale), int(x2*scale), int(y2*scale)
     bbox_np[y1p:y1p+3, x1p:x2p] = [255,0,0];  bbox_np[y2p:y2p+3, x1p:x2p] = [255,0,0]
     bbox_np[y1p:y2p, x1p:x1p+3] = [255,0,0];  bbox_np[y1p:y2p, x2p:x2p+3] = [255,0,0]
 
     # GT box (GREEN)
-    x1g, y1g, x2g, y2g = int(x1_gt*W), int(y1_gt*H), int(x2_gt*W), int(y2_gt*H)
+    x1g, y1g, x2g, y2g = int(x1_gt*scale), int(y1_gt*scale), int(x2_gt*scale), int(y2_gt*scale)
     bbox_np[y1g:y1g+3, x1g:x2g] = [0,255,0];  bbox_np[y2g:y2g+3, x1g:x2g] = [0,255,0]
     bbox_np[y1g:y2g, x1g:x1g+3] = [0,255,0];  bbox_np[y1g:y2g, x2g:x2g+3] = [0,255,0]
 
