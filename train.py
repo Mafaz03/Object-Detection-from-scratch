@@ -120,7 +120,7 @@ train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
 test_dl  = DataLoader(test_ds,  batch_size=args.batch_size, shuffle=True)
 
 
-# ── Classifier ────────────────────────────────────────────────────────────────
+# Classifier
 if args.train_classifier:
     print("TRAINING CLASSIFIER")
 
@@ -197,7 +197,7 @@ if args.train_classifier:
     print("\n" + "="*20 + "\n")
 
 
-# ── Localizer ─────────────────────────────────────────────────────────────────
+# Localizer
 if args.train_localizer:
     print("TRAINING LOCALIZER")
 
@@ -291,7 +291,7 @@ if args.train_localizer:
     print("\n" + "="*20 + "\n")
 
 
-# ── UNet ──────────────────────────────────────────────────────────────────────
+# UNet
 if args.train_unet:
     print("TRAINING UNET")
 
