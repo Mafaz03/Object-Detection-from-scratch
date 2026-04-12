@@ -145,11 +145,6 @@ class MultiTaskPerceptionModel(nn.Module):
         bbox_pred = self.model_localizer(x) # return 
         mask_pred = self.unet(x)            # return 
 
-        if not self.training:
-            # At eval/inference time, return image-space bbox coordinates instead of normalized values.
-            _, _, H, W = x.shape
-            scale = torch.tensor([W, H, W, H], device=bbox_pred.device, dtype=bbox_pred.dtype)
-            bbox_pred = bbox_pred * scale.view(1, 4)
         if not conf:
             return {"classification": pred_logits, "localization": bbox_pred, "segmentation": mask_pred}
         else:

@@ -125,7 +125,7 @@ sample = next(iter(train_dl))
 
 sample_image   = sample['image']
 sample_classid = sample['class_id']
-sample_bbox    = sample['bbox_224']
+sample_bbox    = sample['bbox']
 sample_mask    = sample['mask']
 
 predictions = multitask_model(sample_image)
@@ -208,7 +208,7 @@ for idx in range(BATCH_SIZE):
     # Actual bbox (YELLOW)
     xc, yc, w_gt, h_gt = sample_bbox[idx].cpu().numpy()
     rect_gt = patches.Rectangle(
-        (xc - w_gt/2, yc - h_gt/2), w_gt, h_gt,
+        ((xc - w_gt/2)*W, (yc - h_gt/2)*H), w_gt*W, h_gt*H,
         linewidth=2, edgecolor='Yellow', facecolor='none')
     ax[0][idx].add_patch(rect_gt)
 
@@ -240,13 +240,16 @@ for idx in range(BATCH_SIZE):
     xc_gt, yc_gt, w_gt, h_gt = sample_bbox[idx].cpu().numpy()
     x1_gt, y1_gt, x2_gt, y2_gt = xc_gt-w_gt/2, yc_gt-h_gt/2, xc_gt+w_gt/2, yc_gt+h_gt/2
 
+    clip = lambda v: float(max(0, min(1, v)))
+    x1, y1, x2, y2 = clip(x1), clip(y1), clip(x2), clip(y2)
+    x1_gt, y1_gt, x2_gt, y2_gt = clip(x1_gt), clip(y1_gt), clip(x2_gt), clip(y2_gt)
+
     normal_img = Image.fromarray(img).resize((512, 512))
     bbox_np    = np.array(normal_img).copy()
     H, W, _    = bbox_np.shape
-    scale = W / 224.0
 
     # Pred box (RED)
-    x1p, y1p, x2p, y2p = int(x1*scale), int(y1*scale), int(x2*scale), int(y2*scale)
+    x1p, y1p, x2p, y2p = int(x1*W), int(y1*H), int(x2*W), int(y2*H)
     bbox_np[y1p:y1p+3, x1p:x2p] = [255,0,0];  bbox_np[y2p:y2p+3, x1p:x2p] = [255,0,0]
     bbox_np[y1p:y2p, x1p:x1p+3] = [255,0,0];  bbox_np[y1p:y2p, x2p:x2p+3] = [255,0,0]
 
