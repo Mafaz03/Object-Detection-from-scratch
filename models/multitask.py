@@ -55,7 +55,8 @@ class MultiTaskPerceptionModel(nn.Module):
             os.makedirs("checkpoints", exist_ok=True)
             # gdown.download(id="1gMd4dAtubHVmPUBYVmMm11U1y76GvJWO", output=classifier_path, quiet=False) # will still work
             gdown.download(id="1bxaHWrB6liDdKEpXcUPQfk1wwUX6N_v0", output=classifier_path, quiet=False) # retrained
-            gdown.download(id="10UGWUOCADt1c1pKAnTonsnB9VPehIhB0", output=localizer_path, quiet=False)
+            # gdown.download(id="10UGWUOCADt1c1pKAnTonsnB9VPehIhB0", output=localizer_path, quiet=False) # will still work
+            gdown.download(id="10mUDbxmT3yluEjjeLfUUefCTlQdsLk8H", output=localizer_path, quiet=False) # retrain
             gdown.download(id="1WOTClHYU8N2lHaTWeYoKtyYwOrWRXts3", output=unet_path, quiet=False)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
