@@ -25,6 +25,6 @@ class VGG11Localizer(nn.Module):
             bbox = self.regressor(feat) 
     
         
-            bbox = bbox * self.image_size
+            bbox = bbox * 224
     
             return bbox 
