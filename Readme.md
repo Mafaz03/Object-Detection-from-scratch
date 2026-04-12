@@ -1,10 +1,11 @@
 # Object Detection from Scratch
 
+W&b report:
+https://api.wandb.ai/links/mafaz03/nteu7pmg
+
 Github: 
 https://github.com/Mafaz03/Object-Detection-from-scratch
 
-W&b report:
-https://api.wandb.ai/links/mafaz03/ce3lg7e2
 
 This repository implements a multi-task pet perception pipeline using the Oxford-IIIT Pet dataset. It combines three tasks in one project:
 
