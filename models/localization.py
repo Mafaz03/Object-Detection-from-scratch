@@ -15,7 +15,21 @@ class VGG11Localizer(nn.Module):
             nn.Sigmoid() 
         )
 
-    def forward(self, x):
-        x = self.backbone(x)
-        bbox = self.regressor(x)
-        return bbox
+    def forward(self, x, old = False):
+        if old:
+            x = self.backbone(x)
+            bbox = self.regressor(x)
+            return bbox
+        else:
+            x1 = bbox[:, 0]
+            y1 = bbox[:, 1]
+            x2 = bbox[:, 2]
+            y2 = bbox[:, 3]
+    
+            cx = (x1 + x2) / 2
+            cy = (y1 + y2) / 2
+            w  = (x2 - x1).abs()
+            h  = (y2 - y1).abs()
+    
+            bbox = torch.stack([cx, cy, w, h], dim=1)
+            return bbox
