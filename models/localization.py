@@ -21,6 +21,8 @@ class VGG11Localizer(nn.Module):
             bbox = self.regressor(x)
             return bbox
         else:
+            x = self.backbone(x)
+            bbox = self.regressor(x)
             x1 = bbox[:, 0]
             y1 = bbox[:, 1]
             x2 = bbox[:, 2]
